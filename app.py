@@ -16,12 +16,21 @@ import streamlit as st
 import warnings
 from streamlit_option_menu import option_menu
 from streamlit_extras.mention import mention
+from PIL import Image
 
 warnings.filterwarnings('ignore')
 
-# Configure Streamlit app title and icon
-st.set_page_config(page_title="One Piece Knowledge Assistant", page_icon="🏴‍☠️", layout="wide")
+# Configure Streamlit app
+st.set_page_config(page_title="One Piece Knowledge Tool", page_icon="🏴‍☠️", layout="wide")
 
+# Load the Jolly Roger image
+try:
+    jolly_roger_path = "./One Piece Jolly Roger.png"
+    jolly_roger_image = Image.open(jolly_roger_path)
+except FileNotFoundError:
+    st.error("Jolly Roger image not found. Please ensure the file 'One Piece Jolly Roger.png' is in the same directory as this script.")
+
+# Sidebar with OpenAI API key input
 with st.sidebar:
     openai.api_key = st.text_input("OpenAI API Key", type="password")
     if not (openai.api_key.startswith('sk') and len(openai.api_key) == 164):
@@ -29,21 +38,15 @@ with st.sidebar:
     else:
         st.success("API key is valid", icon="✅")
 
-    with st.container():
-        l, m, r = st.columns((1, 3, 1))
-        with l:
-            st.image("path_to_strawhat_jollyroger.png", width=60)
-        with m:
-            st.empty()
-        with r:
-            st.empty()
+    # Display the Jolly Roger image in the sidebar if it was loaded
+    if 'jolly_roger_image' in locals():
+        st.image(jolly_roger_image, width=60)
 
-    # Side menu
     options = option_menu(
         "Dashboard", 
         ["Home", "About Us", "Model"],
         icons=['house', 'info-circle', 'robot'],
-        menu_icon="book", 
+        menu_icon="compass", 
         default_index=0,
         styles={
             "icon": {"color": "#dec960", "font-size": "20px"},
@@ -51,53 +54,39 @@ with st.sidebar:
             "nav-link-selected": {"background-color": "#262730"}          
         })
 
-# Session states
+# Session states for storing messages and chat session
 if 'messages' not in st.session_state:
     st.session_state.messages = []
 
 if 'chat_session' not in st.session_state:
     st.session_state.chat_session = None
 
-# Pages
+# Page navigation
 if options == "Home":
-    st.title("One Piece Knowledge Assistant")
-    st.image("path_to_one_piece_background.jpg", use_column_width=True)
-    st.write("Welcome to the One Piece Knowledge Assistant! Ask me anything about the One Piece world created by Eiichiro Oda.")
+    st.title("Welcome to the One Piece Knowledge Tool")
+    st.write("Explore and interact with information about the One Piece world!")
 
 elif options == "About Us":
-    st.title("About the One Piece Knowledge Assistant")
-    st.write("This assistant is dedicated to providing information and answering questions about the world of One Piece.")
+    st.title("About Us")
+    st.write("This tool provides insights and knowledge based on the One Piece world by Eiichiro Oda.")
 
 elif options == "Model":
-    st.title("One Piece Knowledge Base")
+    st.title("One Piece Knowledge Model")
     col1, col2, col3 = st.columns([1, 2, 3])
 
     with col2:
-        query = st.text_input("Ask about One Piece", placeholder="Enter your question here...")
+        one_piece_input = st.text_input("Ask about the One Piece world", placeholder="Enter your question here")
         submit_button = st.button("Get Answer")
 
     if submit_button:
-        with st.spinner("Retrieving information..."):
-            System_Prompt = """You are a highly advanced AI language model specialized in the world of One Piece created by Eiichiro Oda. You are knowledgeable about the characters, story arcs, locations, Devil Fruits, Haki, and important events within the One Piece universe. Your goal is to provide informative, accurate, and interesting responses about the One Piece world.
+        with st.spinner("Retrieving knowledge..."):
+            # Replace the prompt with a One Piece-specific prompt
+            System_Prompt = """You are a highly advanced AI language model knowledgeable in the world of One Piece by Eiichiro Oda. Your main objective is to provide accurate and relevant information based on user queries related to the One Piece universe."""
 
-Key Elements to Address:
-    Characters: Describe key characters, their backstories, affiliations, powers, and significant events they are involved in.
-    Story Arcs: Provide summaries and major events of different story arcs.
-    Locations: Explain notable locations, islands, seas, and their significance in the story.
-    Devil Fruits: Explain Devil Fruits, their types, and abilities.
-    Haki: Discuss types of Haki and its users.
-    Other Lore: Share lore, such as the Void Century, World Government, Yonko, and more.
-
-Response Style:
-    - Be descriptive, accurate, and engaging.
-    - Avoid spoilers for readers who may not be caught up, if possible.
-    - Tailor responses to specific user questions and elaborate as needed.
-"""
-
-            user_message = query
             struct = [{'role': 'system', 'content': System_Prompt}]
-            struct.append({"role": "user", "content": user_message})
+            struct.append({"role": "user", "content": one_piece_input})
 
+            # Call OpenAI's Chat API
             chat = openai.ChatCompletion.create(
                 model="gpt-4o-mini",
                 messages=struct
