@@ -1,10 +1,27 @@
 import os
 import openai
-import streamlit as st
+import numpy as np
+import pandas as pd
+import json
+from langchain.chat_models import ChatOpenAI
+from langchain.document_loaders import CSVLoader
+from langchain.embeddings import OpenAIEmbeddings
+from langchain.prompts import ChatPromptTemplate
+from langchain.vectorstores import Chroma
+from langchain_core.output_parsers import StrOutputParser
+from langchain_core.runnables import RunnableLambda, RunnablePassthrough
+from openai.embeddings_utils import get_embedding
 from PIL import Image
 
-# Configure Streamlit app with a wide layout and a custom title
+import streamlit as st
+import warnings
+from streamlit_option_menu import option_menu
+from streamlit_extras.mention import mention
+
+warnings.filterwarnings('ignore')
+
 st.set_page_config(page_title="One Piece Knowledge Tool", page_icon="🏴‍☠️", layout="wide")
+
 
 # Load the Jolly Roger image
 try:
@@ -13,54 +30,40 @@ try:
 except FileNotFoundError:
     st.error("Jolly Roger image not found. Please ensure the file 'One Piece Jolly Roger.png' is in the same directory as this script.")
 
-# Direct URL for the Grand Line map image hosted on GitHub
-background_image_url = "https://raw.githubusercontent.com/your-username/your-repo/main/GrandLineMap.png"  # Replace with your actual URL
-
-# CSS to apply the background image to the "Ask a question" section
-background_css = f"""
-<style>
-    .stApp {{
-        background-size: cover;
-        background-position: center;
-        background-repeat: no-repeat;
-        background-attachment: fixed;
-    }}
-    /* Main content box with a custom background for the 'Ask a question' area */
-    .main-content {{
-        background-image: url('{background_image_url}');
-        background-size: cover;
-        background-position: center;
-        background-color: rgba(255, 255, 255, 0.8);
-        padding: 20px;
-        border-radius: 10px;
-        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-    }}
-</style>
-"""
-
-# Inject CSS into the Streamlit app
-st.markdown(background_css, unsafe_allow_html=True)
-
-# Sidebar with OpenAI API key input
 with st.sidebar:
-    # Display the larger Jolly Roger image at the top of the sidebar
-    if 'jolly_roger_image' in locals():
-        st.image(jolly_roger_image, width=150, caption="Straw Hat Pirates Jolly Roger")
-
     openai.api_key = st.text_input("OpenAI API Key", type="password")
     if not (openai.api_key.startswith('sk') and len(openai.api_key) == 164):
         st.warning("Please enter a valid OpenAI API key", icon="⚠️")
     else:
         st.success("API key is valid", icon="✅")
 
+    with st.container() :
+        l, m, r = st.columns((1, 3, 1))
+        with l : st.empty()
+        with m : st.empty()
+        with r : st.empty()
+
+    options = option_menu(
+        "Dashboard", 
+        ["🏠 Home", " 🏴‍☠️About One Piece", "☠️ Model"],
+        icons = ['book', 'globe', 'tools'],
+        menu_icon = "book", 
+        default_index = 0,
+        styles = {
+            "icon" : {"color" : "#dec960", "font-size" : "20px"},
+            "nav-link" : {"font-size" : "17px", "text-align" : "left", "margin" : "5px", "--hover-color" : "#262730"},
+            "nav-link-selected" : {"background-color" : "#262730"}          
+        })
+
+
 # System prompt for better accuracy
 system_prompt = """
-You are a precise and accurate expert on the One Piece universe. Only provide answers directly based on facts from the series, without speculation or unrelated information. 
-Follow these guidelines:
-1. Be factually accurate and only answer with information from the One Piece universe.
-2. Do not speculate or provide any information outside of One Piece lore.
-3. Be concise but thorough, providing relevant details where appropriate.
-4. If a question is unclear or unanswerable from the source material, reply with "I am unable to answer that question accurately."
+You are an expert on the One Piece universe, providing precise and factual information solely based on the series. Please adhere to the following guidelines:
+
+    Ensure all responses are factually accurate and strictly derived from the One Piece universe.
+    Avoid speculation or information that does not pertain to One Piece lore.
+    Be concise yet comprehensive, including relevant details as necessary.
+    If a question is ambiguous or cannot be answered based on the source material, respond with: "I am unable to answer that question accurately.
 """
 
 # Function to get the answer from OpenAI
@@ -93,7 +96,7 @@ st.write("Explore and interact with information about the One Piece world!")
 
 # Input for user questions
 one_piece_input = st.text_input("Ask about the One Piece world", placeholder="Enter your question here")
-submit_button = st.button("Get Answer")
+submit_button = st.button("Generate Answer")
 
 if submit_button and one_piece_input:
     with st.spinner("Retrieving knowledge..."):
