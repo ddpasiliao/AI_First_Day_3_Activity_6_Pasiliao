@@ -67,7 +67,7 @@ def get_one_piece_answer(query):
     try:
         # Making the OpenAI call with a lower temperature for accuracy
         response = openai.ChatCompletion.create(
-            model="gpt-4",
+            model="gpt-4o-mini",
             messages=messages,
             temperature=0.2  # Lower temperature for more focused and accurate answers
         )
