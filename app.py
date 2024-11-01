@@ -33,7 +33,7 @@ except FileNotFoundError:
 with st.sidebar:
      # Display the larger Jolly Roger image at the top of the sidebar
     if 'jolly_roger_image' in locals():
-        st.image(jolly_roger_image, width=200, caption="")  # Increased width for a larger image
+        st.image(jolly_roger_image, width=300, caption="")  # Increased width for a larger image
     openai.api_key = st.text_input("OpenAI API Key", type="password")
     if not (openai.api_key.startswith('sk') and len(openai.api_key) == 164):
         st.warning("Please enter a valid OpenAI API key", icon="⚠️")
