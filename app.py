@@ -114,13 +114,16 @@ st.markdown('<div class="main-content">', unsafe_allow_html=True)
 st.title("One Piece Knowledge Tool")
 st.write("Explore and interact with information about the One Piece world!")
 
-# Input for user questions
-one_piece_input = st.text_input("Ask about the One Piece world", placeholder="Enter your question here")
+# Input for user questions using text_area for a larger input field
+one_piece_input = st.text_area("Ask about the One Piece world", placeholder="Enter your question here", height=150)
+
 submit_button = st.button("Generate Answer")
 
 if submit_button and one_piece_input:
     with st.spinner("Retrieving knowledge..."):
         # Get the answer using OpenAI's API
         response = get_one_piece_answer(one_piece_input)
-        st.write(response)
+        # Use st.markdown to enhance the output display
+        st.markdown(f"<div style='font-size: 18px; line-height: 1.5;'>{response}</div>", unsafe_allow_html=True)
+
 st.markdown('</div>', unsafe_allow_html=True)
