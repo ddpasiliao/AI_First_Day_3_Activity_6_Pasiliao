@@ -1,24 +1,7 @@
 import os
 import openai
-import numpy as np
-import pandas as pd
-import json
-from langchain.chat_models import ChatOpenAI
-from langchain.document_loaders import CSVLoader
-from langchain.embeddings import OpenAIEmbeddings
-from langchain.prompts import ChatPromptTemplate
-from langchain.vectorstores import Chroma
-from langchain_core.output_parsers import StrOutputParser
-from langchain_core.runnables import RunnableLambda, RunnablePassthrough
-from openai.embeddings_utils import get_embedding
-
 import streamlit as st
-import warnings
-from streamlit_option_menu import option_menu
-from streamlit_extras.mention import mention
 from PIL import Image
-
-warnings.filterwarnings('ignore')
 
 # Configure Streamlit app
 st.set_page_config(page_title="One Piece Knowledge Tool", page_icon="🏴‍☠️", layout="wide")
@@ -59,56 +42,49 @@ with st.sidebar:
     if 'jolly_roger_image' in locals():
         st.image(jolly_roger_image, width=60)
 
-    options = option_menu(
-        "Dashboard", 
-        ["Home", "About Us", "Model"],
-        icons=['house', 'info-circle', 'robot'],
-        menu_icon="compass", 
-        default_index=0,
-        styles={
-            "icon": {"color": "#dec960", "font-size": "20px"},
-            "nav-link": {"font-size": "17px", "text-align": "left", "margin": "5px", "--hover-color": "#262730"},
-            "nav-link-selected": {"background-color": "#262730"}          
-        })
+# System prompt for better accuracy
+system_prompt = """
+You are an AI expert on the One Piece universe. Your task is to provide accurate and precise information directly related to Eiichiro Oda’s One Piece series.
+Follow these guidelines:
+1. Be factually accurate and only answer with information from the One Piece universe.
+2. Do not speculate or provide any information outside of One Piece lore.
+3. Be concise but thorough, providing relevant details where appropriate.
+4. If a question is unclear or unanswerable from the source material, reply with "I am unable to answer that question accurately."
+"""
 
-# Session states for storing messages and chat session
-if 'messages' not in st.session_state:
-    st.session_state.messages = []
+# Function to get the answer from OpenAI
+def get_one_piece_answer(query):
+    messages = [
+        {"role": "system", "content": system_prompt},
+        {"role": "user", "content": query}
+    ]
+    try:
+        # Making the OpenAI call with a lower temperature for accuracy
+        response = openai.ChatCompletion.create(
+            model="gpt-4",
+            messages=messages,
+            temperature=0.2  # Lower temperature for more focused and accurate answers
+        )
+        answer = response.choices[0].message.content.strip()
+        
+        # Validate answer length or content to retry if off-track
+        if "One Piece" not in answer and len(answer.split()) < 10:
+            return "I'm unable to answer that question accurately."
+        return answer
 
-if 'chat_session' not in st.session_state:
-    st.session_state.chat_session = None
+    except Exception as e:
+        return f"Error: {e}"
 
-# Page navigation
-if options == "Home":
-    st.title("Welcome to the One Piece Knowledge Tool")
-    st.write("Explore and interact with information about the One Piece world!")
+# Main app section
+st.title("One Piece Knowledge Tool")
+st.write("Explore and interact with information about the One Piece world!")
 
-elif options == "About Us":
-    st.title("About Us")
-    st.write("This tool provides insights and knowledge based on the One Piece world by Eiichiro Oda.")
+# Input for user questions
+one_piece_input = st.text_input("Ask about the One Piece world", placeholder="Enter your question here")
+submit_button = st.button("Get Answer")
 
-elif options == "Model":
-    st.title("One Piece Knowledge Model")
-    col1, col2, col3 = st.columns([1, 2, 3])
-
-    with col2:
-        one_piece_input = st.text_input("Ask about the One Piece world", placeholder="Enter your question here")
-        submit_button = st.button("Get Answer")
-
-    if submit_button:
-        with st.spinner("Retrieving knowledge..."):
-            # Replace the prompt with a One Piece-specific prompt
-            System_Prompt = """You are a highly advanced AI language model knowledgeable in the world of One Piece by Eiichiro Oda. Your main objective is to provide accurate and relevant information based on user queries related to the One Piece universe."""
-
-            struct = [{'role': 'system', 'content': System_Prompt}]
-            struct.append({"role": "user", "content": one_piece_input})
-
-            # Call OpenAI's Chat API
-            chat = openai.ChatCompletion.create(
-                model="gpt-4o-mini",
-                messages=struct
-            )
-
-            response = chat.choices[0].message.content
-            struct.append({"role": "assistant", "content": response})
-            st.write(response)
+if submit_button and one_piece_input:
+    with st.spinner("Retrieving knowledge..."):
+        # Get the answer using OpenAI's API
+        response = get_one_piece_answer(one_piece_input)
+        st.write(response)
