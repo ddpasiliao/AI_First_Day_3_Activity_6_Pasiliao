@@ -38,15 +38,15 @@ st.markdown(background_css, unsafe_allow_html=True)
 
 # Sidebar with OpenAI API key input
 with st.sidebar:
+    # Display the larger Jolly Roger image at the top of the sidebar
+    if 'jolly_roger_image' in locals():
+        st.image(jolly_roger_image, width=150, caption="")  # Increased width for a larger image
+
     openai.api_key = st.text_input("OpenAI API Key", type="password")
     if not (openai.api_key.startswith('sk') and len(openai.api_key) == 164):
         st.warning("Please enter a valid OpenAI API key", icon="⚠️")
     else:
         st.success("API key is valid", icon="✅")
-
-    # Display the Jolly Roger image in the sidebar if it was loaded
-    if 'jolly_roger_image' in locals():
-        st.image(jolly_roger_image, width=80, caption="Straw Hat Pirates Jolly Roger")
 
 # System prompt for better accuracy
 system_prompt = """
