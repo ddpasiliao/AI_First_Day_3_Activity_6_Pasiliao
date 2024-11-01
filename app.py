@@ -13,18 +13,23 @@ try:
 except FileNotFoundError:
     st.error("Jolly Roger image not found. Please ensure the file 'One Piece Jolly Roger.png' is in the same directory as this script.")
 
-# CSS for background image
-background_css = """
+# Direct URL for the Grand Line map image hosted on GitHub
+background_image_url = "https://raw.githubusercontent.com/your-username/your-repo/main/GrandLineMap.png"  # Replace with your actual URL
+
+# CSS to apply the background image to the "Ask a question" section
+background_css = f"""
 <style>
     .stApp {{
-        background-image: url('GrandlineMap.png');
         background-size: cover;
         background-position: center;
         background-repeat: no-repeat;
         background-attachment: fixed;
     }}
-    /* Style for the main content box to make it stand out */
+    /* Main content box with a custom background for the 'Ask a question' area */
     .main-content {{
+        background-image: url('{background_image_url}');
+        background-size: cover;
+        background-position: center;
         background-color: rgba(255, 255, 255, 0.8);
         padding: 20px;
         border-radius: 10px;
@@ -40,7 +45,7 @@ st.markdown(background_css, unsafe_allow_html=True)
 with st.sidebar:
     # Display the larger Jolly Roger image at the top of the sidebar
     if 'jolly_roger_image' in locals():
-        st.image(jolly_roger_image, width=150, caption="")  # Increased width for a larger image
+        st.image(jolly_roger_image, width=150, caption="Straw Hat Pirates Jolly Roger")
 
     openai.api_key = st.text_input("OpenAI API Key", type="password")
     if not (openai.api_key.startswith('sk') and len(openai.api_key) == 164):
