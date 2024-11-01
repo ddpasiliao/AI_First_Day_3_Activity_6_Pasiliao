@@ -30,6 +30,23 @@ try:
 except FileNotFoundError:
     st.error("Jolly Roger image not found. Please ensure the file 'One Piece Jolly Roger.png' is in the same directory as this script.")
 
+# CSS for background image
+grand_line_map_path = "./GrandLineMap.png"
+background_css = f"""
+<style>
+    .stApp {{
+        background-image: url('{grand_line_map_path}');
+        background-size: cover;
+        background-position: center;
+        background-repeat: no-repeat;
+        background-attachment: fixed;
+    }}
+</style>
+"""
+
+# Inject CSS into the Streamlit app
+st.markdown(background_css, unsafe_allow_html=True)
+
 # Sidebar with OpenAI API key input
 with st.sidebar:
     openai.api_key = st.text_input("OpenAI API Key", type="password")
