@@ -3,7 +3,7 @@ import openai
 import streamlit as st
 from PIL import Image
 
-# Configure Streamlit app
+# Configure Streamlit app with a wide layout and a custom title
 st.set_page_config(page_title="One Piece Knowledge Tool", page_icon="🏴‍☠️", layout="wide")
 
 # Load the Jolly Roger image
@@ -14,15 +14,21 @@ except FileNotFoundError:
     st.error("Jolly Roger image not found. Please ensure the file 'One Piece Jolly Roger.png' is in the same directory as this script.")
 
 # CSS for background image
-grand_line_map_path = "./GrandLineMap.png"
-background_css = f"""
+background_css = """
 <style>
     .stApp {{
-        background-image: url('{grand_line_map_path}');
+        background-image: url('GrandlineMap.png');
         background-size: cover;
         background-position: center;
         background-repeat: no-repeat;
         background-attachment: fixed;
+    }}
+    /* Style for the main content box to make it stand out */
+    .main-content {{
+        background-color: rgba(255, 255, 255, 0.8);
+        padding: 20px;
+        border-radius: 10px;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
     }}
 </style>
 """
@@ -40,7 +46,7 @@ with st.sidebar:
 
     # Display the Jolly Roger image in the sidebar if it was loaded
     if 'jolly_roger_image' in locals():
-        st.image(jolly_roger_image, width=60)
+        st.image(jolly_roger_image, width=80, caption="Straw Hat Pirates Jolly Roger")
 
 # System prompt for better accuracy
 system_prompt = """
@@ -75,7 +81,8 @@ def get_one_piece_answer(query):
     except Exception as e:
         return f"Error: {e}"
 
-# Main app section
+# Main content container with styling
+st.markdown('<div class="main-content">', unsafe_allow_html=True)
 st.title("One Piece Knowledge Tool")
 st.write("Explore and interact with information about the One Piece world!")
 
@@ -88,3 +95,4 @@ if submit_button and one_piece_input:
         # Get the answer using OpenAI's API
         response = get_one_piece_answer(one_piece_input)
         st.write(response)
+st.markdown('</div>', unsafe_allow_html=True)
