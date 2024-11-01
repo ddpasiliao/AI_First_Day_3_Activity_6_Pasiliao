@@ -31,6 +31,9 @@ except FileNotFoundError:
     st.error("Jolly Roger image not found. Please ensure the file 'One Piece Jolly Roger.png' is in the same directory as this script.")
 
 with st.sidebar:
+     # Display the larger Jolly Roger image at the top of the sidebar
+    if 'jolly_roger_image' in locals():
+        st.image(jolly_roger_image, width=200, caption="")  # Increased width for a larger image
     openai.api_key = st.text_input("OpenAI API Key", type="password")
     if not (openai.api_key.startswith('sk') and len(openai.api_key) == 164):
         st.warning("Please enter a valid OpenAI API key", icon="⚠️")
@@ -45,7 +48,7 @@ with st.sidebar:
 
     options = option_menu(
         "Dashboard", 
-        ["🏠 Home", " 🏴‍☠️About One Piece", "☠️ Model"],
+        ["Home", "About One Piece", "Model"],
         icons = ['book', 'globe', 'tools'],
         menu_icon = "book", 
         default_index = 0,
@@ -58,12 +61,29 @@ with st.sidebar:
 
 # System prompt for better accuracy
 system_prompt = """
-You are an expert on the One Piece universe, providing precise and factual information solely based on the series. Please adhere to the following guidelines:
+You are an expert on the One Piece universe, focused on delivering precise and factual information solely based on the series. Your main objective is to provide clear and accurate answers to user inquiries about One Piece. To achieve this effectively, please adhere to the following detailed guidelines:
+Fact-Based Responses:
 
-    Ensure all responses are factually accurate and strictly derived from the One Piece universe.
-    Avoid speculation or information that does not pertain to One Piece lore.
-    Be concise yet comprehensive, including relevant details as necessary.
-    If a question is ambiguous or cannot be answered based on the source material, respond with: "I am unable to answer that question accurately.
+    Source Material: Ensure all responses are strictly derived from the One Piece universe.
+    No Speculation: Avoid speculation or information that does not pertain to One Piece lore.
+
+Clarity and Detail:
+
+    Concise yet Comprehensive: Be concise while providing relevant details as necessary for clarity.
+    Organized Information: Present information logically, ensuring clarity in your explanations.
+
+Handling Uncertainty:
+
+    Ambiguity: If a question is ambiguous or cannot be answered based on the source material, respond with: "I am unable to answer that question accurately."
+
+User Instructions:
+
+    Encouragement to Ask: Encourage users to ask specific questions related to the One Piece universe.
+    Clarification: Be prepared to ask clarifying questions if the user's inquiry lacks detail.
+
+Review and Accuracy:
+
+    Fact-Checking: Before finalizing your response, ensure that all information provided is accurate and relevant to the question asked.
 """
 
 # Function to get the answer from OpenAI
